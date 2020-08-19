@@ -80,12 +80,12 @@ private fun spawnCreeps(
     }
 
     val role: Role = when {
-        creeps.count { it.memory.role == Role.HARVESTER } < 2 -> Role.HARVESTER
+        creeps.count { it.memory.role == Role.HARVESTER } < 3 -> Role.HARVESTER
 
-        creeps.none { it.memory.role == Role.UPGRADER } -> Role.UPGRADER
+        creeps.count { it.memory.role == Role.UPGRADER } < 2 -> Role.UPGRADER
 
         spawn.room.find(FIND_MY_CONSTRUCTION_SITES).isNotEmpty() &&
-                creeps.count { it.memory.role == Role.BUILDER } < 2 -> Role.BUILDER
+                creeps.count { it.memory.role == Role.BUILDER } < 3 -> Role.BUILDER
 
         else -> return
     }

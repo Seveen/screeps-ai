@@ -12,15 +12,29 @@ enum class Role {
 }
 
 fun Creep.upgrade(controller: StructureController) {
+    if (memory.upgrading && store[RESOURCE_ENERGY] == 0) {
+        memory.upgrading = false
+        say("🔄 harvest")
+    }
+    if (!memory.upgrading && store[RESOURCE_ENERGY] == store.getCapacity()) {
+        memory.upgrading = true
+        say("🚧 upgrade")
+    }
 
-    if (store[RESOURCE_ENERGY] == 0) {
+    if (memory.upgrading) {
+        if (upgradeController(controller) == ERR_NOT_IN_RANGE) {
+            moveTo(controller.pos)
+        }
+    } else {
+        val onTheGround = room.find(FIND_DROPPED_RESOURCES)
+        if (onTheGround.isNotEmpty()) {
+            if (pickup(onTheGround[0]) == ERR_NOT_IN_RANGE) {
+                moveTo(onTheGround[0].pos)
+            }
+        }
         val sources = room.find(FIND_SOURCES)
         if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
             moveTo(sources[0].pos)
-        }
-    } else {
-        if (upgradeController(controller) == ERR_NOT_IN_RANGE) {
-            moveTo(controller.pos)
         }
     }
 }
@@ -54,24 +68,40 @@ fun Creep.build(assignedRoom: Room = this.room) {
             }
         }
     } else {
-        val sources = room.find(FIND_SOURCES)
-        if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-            moveTo(sources[0].pos)
+        val ruins = assignedRoom.find(FIND_RUINS)
+                .filter { it.store[RESOURCE_ENERGY] > 0}
+        if (ruins.isNotEmpty()) {
+            if (withdraw(ruins[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                moveTo(ruins[0].pos)
+            }
+        } else {
+            val sources = assignedRoom.find(FIND_SOURCES)
+            if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
+                moveTo(sources[0].pos)
+            }
         }
     }
 }
 
 fun Creep.harvest(fromRoom: Room = this.room, toRoom: Room = this.room) {
-    if (store[RESOURCE_ENERGY] < store.getCapacity()) {
-        val sources = fromRoom.find(FIND_SOURCES)
-        if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-            moveTo(sources[0].pos)
+    if (store[RESOURCE_ENERGY] < store.getCapacity(RESOURCE_ENERGY)) {
+        val ruins = fromRoom.find(FIND_RUINS)
+                .filter { it.store[RESOURCE_ENERGY] > 0}
+        if (ruins.isNotEmpty()) {
+            if (withdraw(ruins[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                moveTo(ruins[0].pos)
+            }
+        } else {
+            val sources = fromRoom.find(FIND_SOURCES)
+            if (harvest(sources[0]) == ERR_NOT_IN_RANGE) {
+                moveTo(sources[0].pos)
+            }
         }
     } else {
         val targets = toRoom.find(FIND_MY_STRUCTURES)
-            .filter { (it.structureType == STRUCTURE_EXTENSION || it.structureType == STRUCTURE_SPAWN) }
-            .map { it.unsafeCast<StoreOwner>() }
-            .filter { it.store[RESOURCE_ENERGY] < it.store.getCapacity() }
+                .filter { (it.structureType == STRUCTURE_EXTENSION || it.structureType == STRUCTURE_SPAWN) }
+                .map { it.unsafeCast<StoreOwner>() }
+                .filter { it.store[RESOURCE_ENERGY] < it.store.getCapacity(RESOURCE_ENERGY) }
 
         if (targets.isNotEmpty()) {
             if (transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
