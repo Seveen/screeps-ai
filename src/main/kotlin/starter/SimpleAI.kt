@@ -59,13 +59,13 @@ fun gameLoop() {
 
     for ((_, creep) in Game.creeps) {
         when (creep.memory.role) {
-            Role.HARVESTER -> creep.harvest()
+            Role.HARVESTER -> creep.mine()
             Role.BUILDER -> creep.build()
             Role.UPGRADER -> creep.upgrade(mainSpawn.room.controller!!)
+            Role.HAULER -> creep.haul()
             else -> creep.pause()
         }
     }
-
 }
 
 private fun spawnCreeps(
@@ -74,13 +74,15 @@ private fun spawnCreeps(
 ) {
 
     val body = arrayOf<BodyPartConstant>(WORK, CARRY, MOVE)
+    val minerBody = arrayOf<BodyPartConstant>(WORK, WORK, MOVE)
 
     if (spawn.room.energyAvailable < body.sumBy { BODYPART_COST[it]!! }) {
         return
     }
 
     val role: Role = when {
-        creeps.count { it.memory.role == Role.HARVESTER } < 3 -> Role.HARVESTER
+        creeps.count { it.memory.role == Role.HARVESTER } < 2 -> Role.HARVESTER
+        creeps.count { it.memory.role == Role.HAULER } < 2 -> Role.HAULER
 
         creeps.count { it.memory.role == Role.UPGRADER } < 2 -> Role.UPGRADER
 
@@ -91,8 +93,16 @@ private fun spawnCreeps(
     }
 
     val newName = "${role.name}_${Game.time}"
-    val code = spawn.spawnCreep(body, newName, options {
-        memory = jsObject<CreepMemory> { this.role = role }
+    val code = spawn.spawnCreep(
+            if (role == Role.HARVESTER) minerBody else body,
+            newName, options {
+        memory = jsObject<CreepMemory> {
+            this.role = role
+            if (this.role == Role.HARVESTER) {
+                //TODO se partager les sources
+                this.assignedSource = spawn.room.find(FIND_SOURCES).first().id
+            }
+        }
     })
 
     when (code) {
