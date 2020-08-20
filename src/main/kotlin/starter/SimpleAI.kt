@@ -1,70 +1,25 @@
 package starter
 
-
+import creature.Role
+import creature.roleToEssence
 import screeps.api.*
 import screeps.api.structures.StructureSpawn
 import screeps.utils.isEmpty
 import screeps.utils.unsafe.delete
-import screeps.utils.unsafe.jsObject
 
 fun gameLoop() {
     val mainSpawn: StructureSpawn = Game.spawns.values.firstOrNull() ?: return
-
     //delete memories of creeps that have passed away
     houseKeeping(Game.creeps)
-
     // just an example of how to use room memory
     mainSpawn.room.memory.numberOfCreeps = mainSpawn.room.find(FIND_CREEPS).count()
 
     //make sure we have at least some creeps
     spawnCreeps(Game.creeps.values, mainSpawn)
 
-    // build a few extensions so we can have 550 energy
-    val controller = mainSpawn.room.controller
-    if (controller != null && controller.level >= 2) {
-        when (controller.room.find(FIND_MY_STRUCTURES).count { it.structureType == STRUCTURE_EXTENSION }) {
-            0 -> controller.room.createConstructionSite(29, 27, STRUCTURE_EXTENSION)
-            1 -> controller.room.createConstructionSite(28, 27, STRUCTURE_EXTENSION)
-            2 -> controller.room.createConstructionSite(27, 27, STRUCTURE_EXTENSION)
-            3 -> controller.room.createConstructionSite(26, 27, STRUCTURE_EXTENSION)
-            4 -> controller.room.createConstructionSite(25, 27, STRUCTURE_EXTENSION)
-            5 -> controller.room.createConstructionSite(24, 27, STRUCTURE_EXTENSION)
-            6 -> controller.room.createConstructionSite(23, 27, STRUCTURE_EXTENSION)
-        }
-    }
-
-    //spawn a big creep if we have plenty of energy
-    for ((_, room) in Game.rooms) {
-        if (room.energyAvailable >= 550) {
-            mainSpawn.spawnCreep(
-                    arrayOf(
-                            WORK,
-                            WORK,
-                            WORK,
-                            WORK,
-                            CARRY,
-                            MOVE,
-                            MOVE
-                    ),
-                    "HarvesterBig_${Game.time}",
-                    options {
-                        memory = jsObject<CreepMemory> {
-                            this.role = Role.HARVESTER
-                        }
-                    }
-            )
-            console.log("hurray!")
-        }
-    }
-
     for ((_, creep) in Game.creeps) {
-        when (creep.memory.role) {
-            Role.HARVESTER -> creep.mine()
-            Role.BUILDER -> creep.build()
-            Role.UPGRADER -> creep.upgrade(mainSpawn.room.controller!!)
-            Role.HAULER -> creep.haul()
-            else -> creep.pause()
-        }
+        val essence = roleToEssence(creep.memory.role)
+        essence.act(creep, mainSpawn.room)
     }
 }
 
@@ -73,16 +28,16 @@ private fun spawnCreeps(
         spawn: StructureSpawn
 ) {
 
-    val body = arrayOf<BodyPartConstant>(WORK, CARRY, MOVE)
-    val minerBody = arrayOf<BodyPartConstant>(WORK, WORK, MOVE)
-
-    if (spawn.room.energyAvailable < body.sumBy { BODYPART_COST[it]!! }) {
+    //TODO adapter l'energie dispo en fonction du niveau ?
+    val extensionCount = spawn.room.find(FIND_MY_STRUCTURES).filter { it.structureType == STRUCTURE_EXTENSION }.count() * 50
+    val maxEnergy = 300 + extensionCount
+    if (spawn.room.energyAvailable < maxEnergy) {
         return
     }
 
     val role: Role = when {
-        creeps.count { it.memory.role == Role.HARVESTER } < 2 -> Role.HARVESTER
-        creeps.count { it.memory.role == Role.HAULER } < 2 -> Role.HAULER
+        creeps.count { it.memory.role == Role.HARVESTER } < 4 -> Role.HARVESTER
+        creeps.count { it.memory.role == Role.HAULER } < 4 -> Role.HAULER
 
         creeps.count { it.memory.role == Role.UPGRADER } < 2 -> Role.UPGRADER
 
@@ -92,17 +47,15 @@ private fun spawnCreeps(
         else -> return
     }
 
+    val essence = roleToEssence(role)
+
+    val body: Array<BodyPartConstant> = essence.createBody(300)
+
     val newName = "${role.name}_${Game.time}"
     val code = spawn.spawnCreep(
-            if (role == Role.HARVESTER) minerBody else body,
+            body,
             newName, options {
-        memory = jsObject<CreepMemory> {
-            this.role = role
-            if (this.role == Role.HARVESTER) {
-                //TODO se partager les sources
-                this.assignedSource = spawn.room.find(FIND_SOURCES).first().id
-            }
-        }
+        memory = essence.createMemory(spawn.room)
     })
 
     when (code) {

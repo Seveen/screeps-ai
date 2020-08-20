@@ -1,11 +1,9 @@
 package starter
 
+import creature.Role
 import screeps.api.*
-import screeps.utils.memory.MemoryMappingDelegate
 import screeps.utils.memory.memory
 import screeps.utils.memory.memoryWithSerializer
-import kotlin.Unit.toString
-import kotlin.properties.ReadWriteProperty
 
 /* Add the variables that you want to store to the persistent memory for each object type.
 * They can be accessed by using the .memory attribute of any of the instances of that class
@@ -34,8 +32,6 @@ var FlagMemory.test: Int by memory { 0 }
 
 /* room.memory */
 var RoomMemory.numberOfCreeps: Int by memory { 0 }
-var RoomMemory.minerBySource: Map<String, String>
-        by memoryMap(mapOf("" to ""))
 
 /* spawn.memory */
 var SpawnMemory.test: Int by memory { 0 }
