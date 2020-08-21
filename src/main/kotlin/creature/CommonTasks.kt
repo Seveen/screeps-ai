@@ -2,34 +2,53 @@ package creature
 
 import screeps.api.*
 
-fun Creep.withdrawFromContainersInRoom(room: Room) {
-    val containers = room.find(FIND_STRUCTURES)
-            .filter { it.structureType == STRUCTURE_CONTAINER }
+fun Creep.withdrawFromStructureInRoom(room: Room, structureTypes: List<StructureConstant>) {
+    room.find(FIND_STRUCTURES)
+            .filter {
+                structureTypes.contains(it.structureType)
+            }
             .map { it.unsafeCast<StoreOwner>() }
-            .filter {  it.store[RESOURCE_ENERGY] > 45 }
-    if (containers.isNotEmpty()) {
-        if (withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            moveTo(containers[0].pos)
-        }
-    }
+            .filter { it.store[RESOURCE_ENERGY] > 0 }
+            .maxBy { it.store[RESOURCE_ENERGY] ?: 0 }?.let {
+                if (withdraw(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
+}
+
+fun Creep.withdrawFromRuinsInRoom(room: Room) {
+    room.find(FIND_RUINS)
+            .maxBy { it.store[RESOURCE_ENERGY] ?: 0 }?.let {
+                if (withdraw(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
+}
+
+fun Creep.withdrawFromTombsInRoom(room: Room) {
+    room.find(FIND_TOMBSTONES)
+            .maxBy { it.store[RESOURCE_ENERGY] ?: 0 }?.let {
+                if (withdraw(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
 }
 
 fun Creep.withdrawFromSpawnInRoom(room: Room) {
-    val spawns = room.find(FIND_STRUCTURES)
+    room.find(FIND_STRUCTURES)
             .filter { it.structureType == STRUCTURE_EXTENSION || it.structureType == STRUCTURE_SPAWN }
             .map { it.unsafeCast<StoreOwner>() }
-            .filter { it.store[RESOURCE_ENERGY] > 45}
-    if (spawns.isNotEmpty()) {
-        if (withdraw(spawns[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            moveTo(spawns[0].pos)
-        }
-    }
+            .firstOrNull { it.store[RESOURCE_ENERGY] > 45}?.let {
+                if (withdraw(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
 }
 
 fun Creep.pickEnergyOnTheGround(room: Room) {
     room.find(FIND_DROPPED_RESOURCES)
         .filter { it.resourceType == RESOURCE_ENERGY }
-        .maxBy { it.amount }?.let {
+        .minBy { pos.getRangeTo(it.pos) }?.let {
             if (pickup(it) == ERR_NOT_IN_RANGE) {
                 moveTo(it.pos)
             }
@@ -44,14 +63,17 @@ fun Creep.harvestSourcesInRoom(room: Room) {
 }
 
 fun Creep.fillStorageInRoom(room: Room) {
-    val targets = room.find(FIND_MY_STRUCTURES)
-            .filter { (it.structureType == STRUCTURE_EXTENSION || it.structureType == STRUCTURE_SPAWN) }
+    room.find(FIND_MY_STRUCTURES)
+            .filter {
+                (it.structureType == STRUCTURE_EXTENSION
+                        || it.structureType == STRUCTURE_TOWER
+                        || it.structureType == STRUCTURE_SPAWN
+                        || it.structureType == STRUCTURE_CONTAINER)
+            }
             .map { it.unsafeCast<StoreOwner>() }
-            .filter { it.store[RESOURCE_ENERGY] < it.store.getCapacity(RESOURCE_ENERGY) }
-
-    if (targets.isNotEmpty()) {
-        if (transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            moveTo(targets[0].pos)
-        }
-    }
+            .firstOrNull { it.store[RESOURCE_ENERGY] < it.store.getCapacity(RESOURCE_ENERGY) }?.let {
+                if (transfer(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
 }

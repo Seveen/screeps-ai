@@ -11,7 +11,10 @@ import screeps.utils.memory.memoryWithSerializer
 
 /* Creep.memory */
 var CreepMemory.building: Boolean by memory { false }
+var CreepMemory.repairing: Boolean by memory { false }
 var CreepMemory.upgrading: Boolean by memory { false }
+var CreepMemory.hauling: Boolean by memory { false }
+
 var CreepMemory.pause: Int by memory { 0 }
 var CreepMemory.role by memory(Role.UNASSIGNED)
 

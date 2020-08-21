@@ -1,11 +1,11 @@
 package creature
 
-import starter.role
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
 import starter.hauling
+import starter.role
 
-object Hauler : Essence {
+object Cleaner: Essence {
 
     override fun act(creep: Creep, room: Room) {
         if (creep.memory.hauling && creep.store[RESOURCE_ENERGY] == 0) {
@@ -18,9 +18,7 @@ object Hauler : Essence {
         if (creep.memory.hauling) {
             creep.fillStorageInRoom(room)
         } else {
-            creep.withdrawFromRuinsInRoom(room)
-            creep.withdrawFromTombsInRoom(room)
-            creep.withdrawFromStructureInRoom(room, listOf(STRUCTURE_CONTAINER))
+            creep.pickEnergyOnTheGround(room)
         }
     }
 
@@ -33,6 +31,6 @@ object Hauler : Essence {
     }
 
     override fun createMemory(room: Room)= jsObject<CreepMemory> {
-        this.role = Role.HAULER
+        this.role = Role.CLEANER
     }
 }

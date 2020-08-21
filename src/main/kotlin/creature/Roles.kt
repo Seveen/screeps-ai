@@ -9,7 +9,9 @@ enum class Role {
     HARVESTER,
     BUILDER,
     UPGRADER,
-    HAULER
+    HAULER,
+    MAINTAINER,
+    CLEANER
 }
 
 fun roleToEssence(role: Enum<Role>): Essence {
@@ -18,6 +20,8 @@ fun roleToEssence(role: Enum<Role>): Essence {
         Role.HARVESTER -> Miner
         Role.BUILDER -> Builder
         Role.UPGRADER -> Upgrader
+        Role.MAINTAINER -> Maintainer
+        Role.CLEANER -> Cleaner
         else -> Homunculus
     }
 }

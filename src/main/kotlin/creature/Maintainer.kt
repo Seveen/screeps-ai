@@ -2,31 +2,26 @@ package creature
 
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
-import starter.building
+import starter.repairing
 import starter.role
 
-object Builder: Essence {
+object Maintainer: Essence {
     override fun act(creep: Creep, room: Room) {
-        if (creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.memory.building = false
+        if (creep.memory.repairing && creep.store[RESOURCE_ENERGY] == 0) {
+            creep.memory.repairing = false
         }
-        if (!creep.memory.building && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
-            creep.memory.building = true
+        if (!creep.memory.repairing && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
+            creep.memory.repairing = true
         }
 
-        if (creep.memory.building) {
-            room.find(FIND_MY_CONSTRUCTION_SITES)
-                .maxBy {
-                    when (it.structureType) {
-                        STRUCTURE_EXTENSION -> 2
-                        STRUCTURE_TOWER -> 1
-                        else -> -1
+        if (creep.memory.repairing) {
+            room.find(FIND_STRUCTURES)
+                    .filter { it.hits < it.hitsMax }
+                    .minBy { it.hits }?.let {
+                        if (creep.repair(it) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(it.pos)
+                        }
                     }
-                }?.let {
-                    if (creep.build(it) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(it.pos)
-                    }
-                }
         } else {
             creep.withdrawFromStructureInRoom(room,
                     listOf(STRUCTURE_TOWER,
@@ -44,7 +39,7 @@ object Builder: Essence {
     }
 
     override fun createMemory(room: Room) = jsObject<CreepMemory> {
-        this.role = Role.BUILDER
+        this.role = Role.MAINTAINER
     }
 
 }
