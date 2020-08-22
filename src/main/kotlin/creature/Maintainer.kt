@@ -22,8 +22,7 @@ object Maintainer: Essence {
         } else {
             creep.withdrawFromStructureInRoom(room,
                     listOf(STRUCTURE_TOWER,
-                            STRUCTURE_STORAGE,
-                            STRUCTURE_CONTAINER))
+                            STRUCTURE_STORAGE))
         }
     }
 
@@ -38,5 +37,7 @@ object Maintainer: Essence {
     override fun createMemory(room: Room) = jsObject<CreepMemory> {
         this.role = Role.MAINTAINER
     }
+
+    override fun executeSpawnProtocol(creep: Creep) = Unit
 
 }

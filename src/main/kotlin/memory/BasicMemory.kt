@@ -14,8 +14,14 @@ var CreepMemory.working: Boolean by memory { false }
 
 var CreepMemory.pause: Int by memory { 0 }
 var CreepMemory.role by memory(Role.UNASSIGNED)
+var CreepMemory.spawnProtocolDone by memory { false }
+
+var CreepMemory.timer: Int by memory { 0 }
 
 var CreepMemory.assignedSource by memory { "" }
+var CreepMemory.assignedMiner by memory { "" }
+var CreepMemory.assignedContainer by memory { "" }
+
 var CreepMemory.assignedRoom by memory { "" }
 var CreepMemory.assignedController by memory { "" }
 
@@ -34,6 +40,7 @@ var FlagMemory.test: Int by memory { 0 }
 
 /* room.memory */
 var RoomMemory.numberOfCreeps: Int by memory { 0 }
+var RoomMemory.spawning by memory { false }
 
 /* spawn.memory */
 var SpawnMemory.test: Int by memory { 0 }

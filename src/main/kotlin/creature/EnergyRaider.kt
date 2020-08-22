@@ -45,4 +45,6 @@ object EnergyRaider : Essence {
         assignedRoom = "W42N44"
         assignedController = room.controller?.id ?: ""
     }
+
+    override fun executeSpawnProtocol(creep: Creep) = Unit
 }

@@ -4,6 +4,9 @@ import creature.Role
 import creature.roleToEssence
 import memory.numberOfCreeps
 import memory.role
+import memory.spawnProtocolDone
+import procedure.locateUnpairedHauler
+import procedure.wipePairing
 import screeps.api.*
 import screeps.api.structures.StructureSpawn
 import screeps.api.structures.StructureTower
@@ -17,6 +20,13 @@ fun gameLoop() {
     // just an example of how to use room memory
     mainSpawn.room.memory.numberOfCreeps = mainSpawn.room.find(FIND_CREEPS).count()
 
+    mainSpawn.room.find(FIND_MY_CREEPS)
+            .filter { it.memory.spawnProtocolDone.not() }
+            .forEach {
+                val essence = roleToEssence(it.memory.role)
+                essence.executeSpawnProtocol(it)
+            }
+
     if (mainSpawn.room.controller?.level >= 4) {
         mainSpawn.room.createConstructionSite(46, 19, STRUCTURE_STORAGE)
     }
@@ -25,15 +35,26 @@ fun gameLoop() {
             .filter { it.structureType == STRUCTURE_TOWER }
             .map { it.unsafeCast<StructureTower>() }
             .forEach { tower ->
-                mainSpawn.room.find(FIND_STRUCTURES)
-                        .filter { it.hits < it.hitsMax }
-                        .minBy { it.hits }?.let {
-                            tower.repair(it)
+                mainSpawn.room.find(FIND_HOSTILE_CREEPS)
+                        .firstOrNull()?.let {
+                            tower.attack(it)
                         }
+                        ?: run {
+                            mainSpawn.room.find(FIND_STRUCTURES)
+                                    .filter { it.hits < it.hitsMax }
+                                    .minBy { it.hits }?.let {
+                                        tower.repair(it)
+                                    }
+                        }
+
             }
 
     //make sure we have at least some creeps
     spawnCreeps(Game.creeps.values, mainSpawn)
+
+    mainSpawn.spawning?.let {
+
+    }
 
     for ((_, creep) in Game.creeps) {
         val essence = roleToEssence(creep.memory.role)
@@ -49,7 +70,7 @@ private fun spawnCreeps(
     val extensionEnergy = spawn.room.find(FIND_MY_STRUCTURES).filter { it.structureType == STRUCTURE_EXTENSION }.count() * 50
 
     val maxEnergy = when {
-        creeps.count { it.memory.role == Role.HARVESTER } == 0 -> 300
+        creeps.count { it.memory.role == Role.MINER } == 0 -> 300
         creeps.count { it.memory.role == Role.HAULER } == 0 -> 300
         else -> 300 + extensionEnergy
     }
@@ -59,23 +80,23 @@ private fun spawnCreeps(
     }
 
     val role: Role = when {
-        creeps.count { it.memory.role == Role.HARVESTER } == 0 -> Role.HARVESTER
+        creeps.count { it.memory.role == Role.MINER } == 0 -> Role.MINER
         creeps.count { it.memory.role == Role.HAULER } == 0 -> Role.HAULER
 
-        creeps.count { it.memory.role == Role.HARVESTER } < 4 -> Role.HARVESTER
-        creeps.count { it.memory.role == Role.HAULER } < 6 -> Role.HAULER
+        creeps.count { it.memory.role == Role.MINER } < 2 -> Role.MINER
+        creeps.count { it.memory.role == Role.HAULER } < 4 -> Role.HAULER
 
-        spawn.room.find(FIND_DROPPED_RESOURCES).isNotEmpty() &&
-                creeps.count { it.memory.role == Role.CLEANER } < 2 -> Role.CLEANER
+        spawn.room.find(FIND_DROPPED_RESOURCES).isNotEmpty()
+                && creeps.count { it.memory.role == Role.CLEANER } < 1 -> Role.CLEANER
 
-        creeps.count { it.memory.role == Role.UPGRADER } < 4 -> Role.UPGRADER
-        creeps.count { it.memory.role == Role.RAIDER } < 4 -> Role.RAIDER
+        creeps.count { it.memory.role == Role.UPGRADER } < 3 -> Role.UPGRADER
+        creeps.count { it.memory.role == Role.RAIDER } < 3 -> Role.RAIDER
 
         spawn.room.find(FIND_MY_STRUCTURES).none { it.structureType == STRUCTURE_TOWER }
                 && creeps.count { it.memory.role == Role.MAINTAINER } < 3 -> Role.MAINTAINER
 
-        spawn.room.find(FIND_MY_CONSTRUCTION_SITES).isNotEmpty() &&
-                creeps.count { it.memory.role == Role.BUILDER } < 2 -> Role.BUILDER
+        spawn.room.find(FIND_MY_CONSTRUCTION_SITES).isNotEmpty()
+                && creeps.count { it.memory.role == Role.BUILDER } < 2 -> Role.BUILDER
 
         else -> return
     }
@@ -104,6 +125,7 @@ private fun houseKeeping(creeps: Record<String, Creep>) {
     for ((creepName, _) in Memory.creeps) {
         if (creeps[creepName] == null) {
             console.log("deleting obsolete memory entry for creep $creepName")
+            wipePairing(creepName)
             delete(Memory.creeps[creepName])
         }
     }

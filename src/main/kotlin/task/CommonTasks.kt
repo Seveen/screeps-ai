@@ -2,6 +2,15 @@ package task
 
 import screeps.api.*
 
+fun Creep.withdrawFromNamedStructureInRoom(id: String) {
+    Game.getObjectById<StoreOwner>(id)
+            ?.let {
+                if (withdraw(it, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    moveTo(it.pos)
+                }
+            }
+}
+
 fun Creep.withdrawFromStructureInRoom(room: Room, structureTypes: List<StructureConstant>) {
     room.find(FIND_STRUCTURES)
             .filter {
@@ -14,6 +23,7 @@ fun Creep.withdrawFromStructureInRoom(room: Room, structureTypes: List<Structure
                     moveTo(it.pos)
                 }
             }
+
 }
 
 fun Creep.withdrawFromRuinsInRoom(room: Room) {

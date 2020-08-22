@@ -12,6 +12,8 @@ object Homunculus: Essence {
     }
 
     override fun createMemory(room: Room) = jsObject<CreepMemory> {
-        this.role = Role.HARVESTER
+        this.role = Role.MINER
     }
+
+    override fun executeSpawnProtocol(creep: Creep) = Unit
 }

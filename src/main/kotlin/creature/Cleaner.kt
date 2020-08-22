@@ -17,18 +17,15 @@ object Cleaner: Essence {
             creep.fillStorageInRoom(room)
         } else {
             creep.pickEnergyOnTheGround(room)
+            creep.memory.working = true
         }
     }
 
-    override fun createBody(energy: Int): Array<BodyPartConstant>{
-        return when {
-            energy >= 650 -> arrayOf(CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE)
-            energy >= 550 -> arrayOf(CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE)
-            else -> arrayOf(CARRY, CARRY, CARRY, MOVE, MOVE, MOVE)
-        }
-    }
+    override fun createBody(energy: Int) = arrayOf<BodyPartConstant>(CARRY, CARRY, CARRY, MOVE, MOVE, MOVE)
 
     override fun createMemory(room: Room)= jsObject<CreepMemory> {
         this.role = Role.CLEANER
     }
+
+    override fun executeSpawnProtocol(creep: Creep) = Unit
 }

@@ -34,4 +34,6 @@ object Upgrader : Essence {
         this.role = Role.UPGRADER
     }
 
+    override fun executeSpawnProtocol(creep: Creep) = Unit
+
 }
