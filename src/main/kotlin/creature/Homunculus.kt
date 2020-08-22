@@ -1,6 +1,6 @@
 package creature
 
-import starter.role
+import memory.role
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
 

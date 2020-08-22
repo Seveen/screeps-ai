@@ -1,4 +1,4 @@
-package starter
+package memory
 
 import creature.Role
 import screeps.api.*
@@ -10,15 +10,14 @@ import screeps.utils.memory.memoryWithSerializer
 * i.e. creep.memory.building = true */
 
 /* Creep.memory */
-var CreepMemory.building: Boolean by memory { false }
-var CreepMemory.repairing: Boolean by memory { false }
-var CreepMemory.upgrading: Boolean by memory { false }
-var CreepMemory.hauling: Boolean by memory { false }
+var CreepMemory.working: Boolean by memory { false }
 
 var CreepMemory.pause: Int by memory { 0 }
 var CreepMemory.role by memory(Role.UNASSIGNED)
 
 var CreepMemory.assignedSource by memory { "" }
+var CreepMemory.assignedRoom by memory { "" }
+var CreepMemory.assignedController by memory { "" }
 
 /* Rest of the persistent memory structures.
 * These set an unused test variable to 0. This is done to illustrate the how to add variables to

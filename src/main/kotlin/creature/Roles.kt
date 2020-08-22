@@ -1,8 +1,9 @@
 package creature
 
-import starter.pause
-import starter.role
+import memory.pause
+import memory.role
 import screeps.api.*
+import task.harvestSourcesInRoom
 
 enum class Role {
     UNASSIGNED,
@@ -11,7 +12,8 @@ enum class Role {
     UPGRADER,
     HAULER,
     MAINTAINER,
-    CLEANER
+    CLEANER,
+    RAIDER
 }
 
 fun roleToEssence(role: Enum<Role>): Essence {
@@ -22,6 +24,7 @@ fun roleToEssence(role: Enum<Role>): Essence {
         Role.UPGRADER -> Upgrader
         Role.MAINTAINER -> Maintainer
         Role.CLEANER -> Cleaner
+        Role.RAIDER -> EnergyRaider
         else -> Homunculus
     }
 }

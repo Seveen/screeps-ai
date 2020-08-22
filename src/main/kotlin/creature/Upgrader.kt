@@ -1,29 +1,23 @@
 package creature
 
-import starter.role
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
-import starter.upgrading
+import memory.*
+import task.withdrawFromStructureInRoom
 
 object Upgrader : Essence {
     override fun act(creep: Creep, room: Room) {
         room.controller?.let { controller ->
-            if (creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == 0) {
-                creep.memory.upgrading = false
-            }
-            if (!creep.memory.upgrading && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
-                creep.memory.upgrading = true
-            }
+            creep.updateBistableWorkMemory()
 
-            if (creep.memory.upgrading) {
+            if (creep.memory.working) {
                 if (creep.upgradeController(controller) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(controller.pos)
                 }
             } else {
                 creep.withdrawFromStructureInRoom(room,
                         listOf(STRUCTURE_TOWER,
-                                STRUCTURE_STORAGE,
-                                STRUCTURE_CONTAINER))
+                                STRUCTURE_STORAGE))
             }
         }
     }

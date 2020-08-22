@@ -1,20 +1,17 @@
 package creature
 
+import memory.updateBistableWorkMemory
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
-import starter.repairing
-import starter.role
+import memory.role
+import memory.working
+import task.withdrawFromStructureInRoom
 
 object Maintainer: Essence {
     override fun act(creep: Creep, room: Room) {
-        if (creep.memory.repairing && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.memory.repairing = false
-        }
-        if (!creep.memory.repairing && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
-            creep.memory.repairing = true
-        }
+        creep.updateBistableWorkMemory()
 
-        if (creep.memory.repairing) {
+        if (creep.memory.working) {
             room.find(FIND_STRUCTURES)
                     .filter { it.hits < it.hitsMax }
                     .minBy { it.hits }?.let {

@@ -2,19 +2,16 @@ package creature
 
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
-import starter.building
-import starter.role
+import memory.role
+import memory.updateBistableWorkMemory
+import memory.working
+import task.withdrawFromStructureInRoom
 
 object Builder: Essence {
     override fun act(creep: Creep, room: Room) {
-        if (creep.memory.building && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.memory.building = false
-        }
-        if (!creep.memory.building && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
-            creep.memory.building = true
-        }
+        creep.updateBistableWorkMemory()
 
-        if (creep.memory.building) {
+        if (creep.memory.working) {
             room.find(FIND_MY_CONSTRUCTION_SITES)
                 .maxBy {
                     when (it.structureType) {

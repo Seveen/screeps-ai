@@ -1,10 +1,9 @@
 package creature
 
 import screeps.api.*
-import screeps.utils.*
 import screeps.utils.unsafe.jsObject
-import starter.assignedSource
-import starter.role
+import memory.assignedSource
+import memory.role
 
 object Miner : Essence {
     override fun act(creep: Creep, room: Room) {

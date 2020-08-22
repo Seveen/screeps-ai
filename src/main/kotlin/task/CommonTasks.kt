@@ -1,4 +1,4 @@
-package creature
+package task
 
 import screeps.api.*
 
@@ -68,7 +68,16 @@ fun Creep.fillStorageInRoom(room: Room) {
                 (it.structureType == STRUCTURE_EXTENSION
                         || it.structureType == STRUCTURE_TOWER
                         || it.structureType == STRUCTURE_SPAWN
-                        || it.structureType == STRUCTURE_CONTAINER)
+                        || it.structureType == STRUCTURE_STORAGE)
+            }
+            .sortedBy {
+                when (it.structureType) {
+                    STRUCTURE_EXTENSION -> -1
+                    STRUCTURE_SPAWN -> -1
+                    STRUCTURE_TOWER -> 5
+                    STRUCTURE_STORAGE -> 10
+                    else -> 100
+                }
             }
             .map { it.unsafeCast<StoreOwner>() }
             .firstOrNull { it.store[RESOURCE_ENERGY] < it.store.getCapacity(RESOURCE_ENERGY) }?.let {

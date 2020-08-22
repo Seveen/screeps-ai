@@ -2,6 +2,8 @@ package starter
 
 import creature.Role
 import creature.roleToEssence
+import memory.numberOfCreeps
+import memory.role
 import screeps.api.*
 import screeps.api.structures.StructureSpawn
 import screeps.api.structures.StructureTower
@@ -67,6 +69,7 @@ private fun spawnCreeps(
                 creeps.count { it.memory.role == Role.CLEANER } < 2 -> Role.CLEANER
 
         creeps.count { it.memory.role == Role.UPGRADER } < 4 -> Role.UPGRADER
+        creeps.count { it.memory.role == Role.RAIDER } < 4 -> Role.RAIDER
 
         spawn.room.find(FIND_MY_STRUCTURES).none { it.structureType == STRUCTURE_TOWER }
                 && creeps.count { it.memory.role == Role.MAINTAINER } < 3 -> Role.MAINTAINER

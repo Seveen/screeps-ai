@@ -2,20 +2,18 @@ package creature
 
 import screeps.api.*
 import screeps.utils.unsafe.jsObject
-import starter.hauling
-import starter.role
+import memory.role
+import memory.updateBistableWorkMemory
+import memory.working
+import task.fillStorageInRoom
+import task.pickEnergyOnTheGround
 
 object Cleaner: Essence {
 
     override fun act(creep: Creep, room: Room) {
-        if (creep.memory.hauling && creep.store[RESOURCE_ENERGY] == 0) {
-            creep.memory.hauling = false
-        }
-        if (!creep.memory.hauling && creep.store[RESOURCE_ENERGY] == creep.store.getCapacity()) {
-            creep.memory.hauling = true
-        }
+        creep.updateBistableWorkMemory()
 
-        if (creep.memory.hauling) {
+        if (creep.memory.working) {
             creep.fillStorageInRoom(room)
         } else {
             creep.pickEnergyOnTheGround(room)
