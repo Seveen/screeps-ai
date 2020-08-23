@@ -26,8 +26,8 @@ object Miner : Essence {
     }
 
     override fun createMemory(room: Room) = jsObject<CreepMemory> {
-        this.role = Role.MINER
-        this.assignedSource = room.find(FIND_SOURCES).map { source ->
+        role = Role.MINER
+        assignedSource = room.find(FIND_SOURCES).map { source ->
             source.id to room.find(FIND_MY_CREEPS)
                     .count { it.memory.assignedSource == source.id }
         }.toList().minBy { it.second }?.first ?: ""

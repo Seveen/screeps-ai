@@ -7,6 +7,7 @@ import task.harvestSourcesInRoom
 
 enum class Role {
     UNASSIGNED,
+    BOOTSTRAPPER,
     MINER,
     BUILDER,
     UPGRADER,
@@ -20,6 +21,7 @@ fun roleToEssence(role: Enum<Role>): Essence {
     return when (role) {
         Role.HAULER -> Hauler
         Role.MINER -> Miner
+        Role.BOOTSTRAPPER -> Bootstrapper
         Role.BUILDER -> Builder
         Role.UPGRADER -> Upgrader
         Role.MAINTAINER -> Maintainer

@@ -1,9 +1,12 @@
 package memory
 
 import creature.Role
+import nest.NestType
 import screeps.api.*
+import screeps.utils.memory.MemoryMappingDelegate
 import screeps.utils.memory.memory
 import screeps.utils.memory.memoryWithSerializer
+import kotlin.properties.ReadWriteProperty
 
 /* Add the variables that you want to store to the persistent memory for each object type.
 * They can be accessed by using the .memory attribute of any of the instances of that class
@@ -45,6 +48,8 @@ var RoomMemory.spawning by memory { false }
 /* spawn.memory */
 var SpawnMemory.test: Int by memory { 0 }
 
+var Memory.roomToNest by memory(mapOf<String, NestType>())
+
 
 /* Memory types */
 fun memoryMap(defaultValue: Map<String, String>) = memoryWithSerializer({ defaultValue },
@@ -57,3 +62,17 @@ fun memoryMap(defaultValue: Map<String, String>) = memoryWithSerializer({ defaul
                 left to right
             }
 }
+
+inline fun <reified T : Enum<T>> memory(defaultValue: Map<String, T>): ReadWriteProperty<MemoryMarker, Map<String, T>> =
+        memoryWithSerializer({defaultValue}, { m ->
+            m.map { "${it.key}=${it.value.name}" }
+                    .toString()
+        }, { s ->
+            if (s == "[]") return@memoryWithSerializer mapOf<String, T>()
+            s.replace("[", "").replace("]", "")
+                    .split(", ")
+                    .associate {
+                        val (left, right) = it.split("=")
+                        left to enumValueOf<T>(right)
+                    }
+        })
