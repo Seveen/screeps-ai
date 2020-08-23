@@ -1,3 +1,5 @@
+##Forked from [screeps-kotlin-starter](https://github.com/exaV/screeps-kotlin-starter)
+
 # Screeps Kotlin Starter
 
 Screeps Kotlin Starter is a starting point for a Screeps AI written in Kotlin.
